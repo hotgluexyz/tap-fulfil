@@ -11,6 +11,19 @@ from hotglue_singer_sdk.streams import RESTStream
 from typing_extensions import override
 
 
+def normalize_fulfil_value(value: Any) -> Any:
+    """Convert Fulfil's typed JSON wrappers into Singer-compatible values."""
+    if isinstance(value, list):
+        return [normalize_fulfil_value(item) for item in value]
+    if not isinstance(value, dict):
+        return value
+    if value.get("__class__") == "Decimal":
+        return float(value["decimal"])
+    if "iso_string" in value:
+        return value["iso_string"]
+    return {key: normalize_fulfil_value(item) for key, item in value.items()}
+
+
 class FulfilStream(RESTStream):
     """Fulfil stream class."""
 
@@ -100,3 +113,8 @@ class FulfilStream(RESTStream):
         if self.request_filter:
             params["filter"] = json.dumps(self.request_filter)
         return params
+
+    @override
+    def post_process(self, row: dict, context: dict | None) -> dict:
+        """Normalize typed Fulfil API values before emitting Singer records."""
+        return normalize_fulfil_value(row)
