@@ -46,3 +46,21 @@ def test_normalize_fulfil_typed_values():
         "invoice_date": "2026-10-25",
         "lines": [{"unit_price": 12.5}],
     }
+
+
+def test_relationship_schemas_match_fulfil_id_payloads():
+    """Fulfil returns relationship values as integer IDs, not nested objects."""
+    tap = TapFulfil(config={"access_key": "placeholder"})
+
+    accounts = AccountsStream(tap=tap).schema["properties"]
+    contacts = ContactsStream(tap=tap).schema["properties"]
+    invoices = InvoicesStream(tap=tap).schema["properties"]
+    invoice_lines = InvoiceLinesStream(tap=tap).schema["properties"]
+
+    assert accounts["company"]["type"] == ["integer", "null"]
+    assert contacts["addresses"]["items"]["type"] == ["integer"]
+    for field in ("company", "party", "currency"):
+        assert invoices[field]["type"] == ["integer", "null"]
+    assert invoices["lines"]["items"]["type"] == ["integer"]
+    assert invoice_lines["invoice"]["type"] == ["integer", "null"]
+    assert invoice_lines["account"]["type"] == ["integer", "null"]

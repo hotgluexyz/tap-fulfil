@@ -19,7 +19,7 @@ class AccountsStream(FulfilStream):
         th.Property("code", th.StringType),
         th.Property("name", th.StringType),
         th.Property("rec_name", th.StringType),
-        th.Property("company", th.CustomType({"type": ["object", "integer", "null"]})),
+        th.Property("company", th.IntegerType),
     ).to_dict()
 
 
@@ -45,7 +45,7 @@ class ContactsStream(FulfilStream):
         th.Property("email", th.StringType),
         th.Property("active", th.BooleanType),
         th.Property("is_supplier", th.BooleanType),
-        th.Property("addresses", th.ArrayType(th.CustomType({"type": "object"}))),
+        th.Property("addresses", th.ArrayType(th.IntegerType)),
     ).to_dict()
 
 
@@ -89,11 +89,11 @@ class InvoicesStream(FulfilStream):
         th.Property("rec_name", th.StringType),
         th.Property("type", th.StringType),
         th.Property("state", th.StringType),
-        th.Property("company", th.CustomType({"type": ["object", "integer", "null"]})),
-        th.Property("party", th.CustomType({"type": ["object", "integer", "null"]})),
-        th.Property("currency", th.CustomType({"type": ["object", "integer", "null"]})),
+        th.Property("company", th.IntegerType),
+        th.Property("party", th.IntegerType),
+        th.Property("currency", th.IntegerType),
         th.Property("invoice_date", th.DateType),
-        th.Property("lines", th.ArrayType(th.CustomType({"type": "object"}))),
+        th.Property("lines", th.ArrayType(th.IntegerType)),
         th.Property("total_amount", th.NumberType),
     ).to_dict()
 
@@ -120,9 +120,9 @@ class InvoiceLinesStream(FulfilStream):
     )
     schema = th.PropertiesList(
         th.Property("id", th.IntegerType),
-        th.Property("invoice", th.CustomType({"type": ["object", "integer", "null"]})),
+        th.Property("invoice", th.IntegerType),
         th.Property("type", th.StringType),
-        th.Property("account", th.CustomType({"type": ["object", "integer", "null"]})),
+        th.Property("account", th.IntegerType),
         th.Property("quantity", th.NumberType),
         th.Property("unit_price", th.NumberType),
         th.Property("description", th.StringType),
