@@ -13,15 +13,13 @@ class AccountsStream(FulfilStream):
     name = "accounts"
     path = "/model/account"
     primary_keys = ("id",)
-    replication_key = "updated_at"
+    request_fields = ("id", "code", "name", "rec_name", "company")
     schema = th.PropertiesList(
         th.Property("id", th.IntegerType),
         th.Property("code", th.StringType),
         th.Property("name", th.StringType),
         th.Property("rec_name", th.StringType),
-        th.Property("active", th.BooleanType),
         th.Property("company", th.CustomType({"type": ["object", "integer", "null"]})),
-        th.Property("updated_at", th.DateTimeType),
     ).to_dict()
 
 
@@ -31,7 +29,15 @@ class ContactsStream(FulfilStream):
     name = "contacts"
     path = "/model/contact"
     primary_keys = ("id",)
-    replication_key = "updated_at"
+    request_fields = (
+        "id",
+        "name",
+        "full_name",
+        "email",
+        "active",
+        "is_supplier",
+        "addresses",
+    )
     schema = th.PropertiesList(
         th.Property("id", th.IntegerType),
         th.Property("name", th.StringType),
@@ -40,7 +46,6 @@ class ContactsStream(FulfilStream):
         th.Property("active", th.BooleanType),
         th.Property("is_supplier", th.BooleanType),
         th.Property("addresses", th.ArrayType(th.CustomType({"type": "object"}))),
-        th.Property("updated_at", th.DateTimeType),
     ).to_dict()
 
 
@@ -50,12 +55,11 @@ class CurrenciesStream(FulfilStream):
     name = "currencies"
     path = "/model/currency"
     primary_keys = ("id",)
-    replication_key = "updated_at"
+    request_fields = ("id", "code", "name")
     schema = th.PropertiesList(
         th.Property("id", th.IntegerType),
         th.Property("code", th.StringType),
         th.Property("name", th.StringType),
-        th.Property("updated_at", th.DateTimeType),
     ).to_dict()
 
 
@@ -65,7 +69,20 @@ class InvoicesStream(FulfilStream):
     name = "invoices"
     path = "/model/invoice"
     primary_keys = ("id",)
-    replication_key = "updated_at"
+    request_filter = (("type", "=", "in"), ("state", "in", ("posted", "approved")))
+    request_fields = (
+        "id",
+        "number",
+        "rec_name",
+        "type",
+        "state",
+        "company",
+        "party",
+        "currency",
+        "invoice_date",
+        "lines",
+        "total_amount",
+    )
     schema = th.PropertiesList(
         th.Property("id", th.IntegerType),
         th.Property("number", th.StringType),
@@ -76,8 +93,38 @@ class InvoicesStream(FulfilStream):
         th.Property("party", th.CustomType({"type": ["object", "integer", "null"]})),
         th.Property("currency", th.CustomType({"type": ["object", "integer", "null"]})),
         th.Property("invoice_date", th.DateType),
-        th.Property("payment_term_date", th.DateType),
         th.Property("lines", th.ArrayType(th.CustomType({"type": "object"}))),
         th.Property("total_amount", th.NumberType),
-        th.Property("updated_at", th.DateTimeType),
+    ).to_dict()
+
+
+class InvoiceLinesStream(FulfilStream):
+    """Fulfil line items for the supplier invoices exported to Airwallex."""
+
+    name = "invoice_lines"
+    path = "/model/invoice_line"
+    primary_keys = ("id",)
+    request_filter = (
+        ("invoice.type", "=", "in"),
+        ("invoice.state", "in", ("posted", "approved")),
+    )
+    request_fields = (
+        "id",
+        "invoice",
+        "type",
+        "account",
+        "quantity",
+        "unit_price",
+        "description",
+        "amount",
+    )
+    schema = th.PropertiesList(
+        th.Property("id", th.IntegerType),
+        th.Property("invoice", th.CustomType({"type": ["object", "integer", "null"]})),
+        th.Property("type", th.StringType),
+        th.Property("account", th.CustomType({"type": ["object", "integer", "null"]})),
+        th.Property("quantity", th.NumberType),
+        th.Property("unit_price", th.NumberType),
+        th.Property("description", th.StringType),
+        th.Property("amount", th.NumberType),
     ).to_dict()

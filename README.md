@@ -7,18 +7,19 @@ A [Singer](https://www.singer.io/) tap that extracts data from **Fulfil**. It is
 - **REST**-style HTTP streams (see `client.py` / `streams.py`).
 - **Personal access token** authentication via the `X-API-KEY` header.
 - Configurable **`api_url`** and optional **`start_date`** (see [Configuration](#configuration)).
-- Incremental streams keyed by `id` and `updated_at`.
+- Full-table streams that explicitly request only the fields used by the mapping.
 
 ### Streams
 
-| Stream | Endpoint / notes | Primary key | Replication key |
-| ------ | ---------------- | ----------- | ----------------- |
-| `accounts` | `GET /model/account` | `id` | `updated_at` |
-| `contacts` | `GET /model/contact` | `id` | `updated_at` |
-| `currencies` | `GET /model/currency` | `id` | `updated_at` |
-| `invoices` | `GET /model/invoice` | `id` | `updated_at` |
+| Stream | Endpoint / notes | Primary key |
+| ------ | ---------------- | ----------- |
+| `accounts` | `GET /model/account` | `id` |
+| `contacts` | `GET /model/contact` | `id` |
+| `currencies` | `GET /model/currency` | `id` |
+| `invoices` | Posted or approved supplier invoices from `GET /model/invoice` | `id` |
+| `invoice_lines` | Lines belonging to the streamed supplier invoices from `GET /model/invoice_line` | `id` |
 
-The API is paginated with `page` and `per_page`; the tap requests ten records
+The API is paginated with `page` and `per_page`; the tap requests 100 records
 per page and stops when a page contains fewer records.
 
 ## Requirements
@@ -108,7 +109,7 @@ tap-fulfil --about
 
 The default development API host is `https://dev.fulfil.io/api/v2`. API model
 endpoints used by this tap are `/model/account`, `/model/contact`,
-`/model/currency`, and `/model/invoice`.
+`/model/currency`, `/model/invoice`, and `/model/invoice_line`.
 
 
 ## License

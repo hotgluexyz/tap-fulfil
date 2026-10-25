@@ -10,6 +10,7 @@ from tap_fulfil.streams import (
     AccountsStream,
     ContactsStream,
     CurrenciesStream,
+    InvoiceLinesStream,
     InvoicesStream,
 )
 
@@ -18,6 +19,7 @@ STREAM_TYPES = [
     ContactsStream,
     CurrenciesStream,
     InvoicesStream,
+    InvoiceLinesStream,
 ]
 
 

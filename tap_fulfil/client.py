@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 import requests
@@ -16,7 +17,9 @@ class FulfilStream(RESTStream):
     # Update this value if necessary or override `parse_response`.
     records_jsonpath = "$[*]"
 
-    page_size = 10
+    page_size = 100
+    request_fields: tuple[str, ...] = ()
+    request_filter: tuple[tuple[Any, ...], ...] | None = None
 
     @override
     @property
@@ -88,4 +91,12 @@ class FulfilStream(RESTStream):
         Returns:
             A dictionary of URL query parameters.
         """
-        return {"page": next_page_token or 1, "per_page": self.page_size}
+        params: dict[str, Any] = {
+            "page": next_page_token or 1,
+            "per_page": self.page_size,
+        }
+        if self.request_fields:
+            params["fields"] = ",".join(self.request_fields)
+        if self.request_filter:
+            params["filter"] = json.dumps(self.request_filter)
+        return params
