@@ -37,10 +37,11 @@ class FulfilStream(RESTStream):
     @override
     @property
     def url_base(self) -> str:
-        """Return the API URL root, preserving the connector's ``base_url`` setting."""
-        return self.config.get(
-            "base_url", self.config.get("api_url", "https://dev.fulfil.io/api/v2")
+        """Return the API root for a workspace URL or a legacy API URL."""
+        base_url = self.config.get(
+            "base_url", self.config.get("api_url", "https://dev.fulfil.io")
         ).rstrip("/")
+        return base_url if base_url.endswith("/api/v2") else f"{base_url}/api/v2"
 
     @override
     @property

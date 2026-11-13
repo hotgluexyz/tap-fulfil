@@ -1,5 +1,9 @@
 """Tests for Fulfil REST request construction."""
 
+from urllib.parse import urlsplit
+
+import pytest
+
 from tap_fulfil.client import normalize_fulfil_value
 from tap_fulfil.streams import (
     AccountsStream,
@@ -9,6 +13,57 @@ from tap_fulfil.streams import (
     InvoicesStream,
 )
 from tap_fulfil.tap import TapFulfil
+
+
+@pytest.mark.parametrize("config_key", ["base_url", "api_url"])
+@pytest.mark.parametrize("suffix", ["", "/", "///", "/api/v2", "/api/v2/", "/api/v2///"])
+@pytest.mark.parametrize(
+    "stream_type",
+    [AccountsStream, ContactsStream, CurrenciesStream, InvoicesStream, InvoiceLinesStream],
+)
+def test_workspace_and_legacy_urls_build_api_requests(config_key, suffix, stream_type):
+    """Both config aliases produce exactly one API prefix for every endpoint."""
+    tap = TapFulfil(
+        config={"access_key": "placeholder", config_key: f"https://workspace.fulfil.io{suffix}"}
+    )
+    stream = stream_type(tap=tap)
+
+    request = stream.prepare_request(context=None, next_page_token=None)
+
+    assert request.url is not None
+    assert urlsplit(request.url)._replace(query="").geturl() == (
+        f"https://workspace.fulfil.io/api/v2{stream.path}"
+    )
+
+
+@pytest.mark.parametrize("base_suffix", ["", "/", "/api/v2", "/api/v2/"])
+@pytest.mark.parametrize("api_suffix", ["", "/", "/api/v2", "/api/v2/"])
+def test_base_url_takes_precedence_in_built_requests(base_suffix, api_suffix):
+    """An explicit base_url wins over an explicit api_url in either URL form."""
+    tap = TapFulfil(
+        config={
+            "access_key": "placeholder",
+            "base_url": f"https://workspace.fulfil.io{base_suffix}",
+            "api_url": f"https://other.fulfil.io{api_suffix}",
+        }
+    )
+    request = AccountsStream(tap=tap).prepare_request(context=None, next_page_token=None)
+
+    assert request.url is not None
+    assert urlsplit(request.url)._replace(query="").geturl() == (
+        "https://workspace.fulfil.io/api/v2/model/account"
+    )
+
+
+def test_default_workspace_url_builds_api_request():
+    """The default workspace URL still targets the development API root."""
+    tap = TapFulfil(config={"access_key": "placeholder"})
+    request = AccountsStream(tap=tap).prepare_request(context=None, next_page_token=None)
+
+    assert request.url is not None
+    assert urlsplit(request.url)._replace(query="").geturl() == (
+        "https://dev.fulfil.io/api/v2/model/account"
+    )
 
 
 def test_streams_request_their_declared_fields():
