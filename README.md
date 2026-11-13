@@ -6,7 +6,7 @@ A [Singer](https://www.singer.io/) tap that extracts data from **Fulfil**. It is
 
 - **REST**-style HTTP streams (see `client.py` / `streams.py`).
 - **Personal access token** authentication via the `X-API-KEY` header.
-- Configurable **`api_url`** and optional **`start_date`** (see [Configuration](#configuration)).
+- Configurable workspace **`base_url`** (or **`api_url`**) and optional **`start_date`** (see [Configuration](#configuration)).
 - Full-table streams that explicitly request only the fields used by the mapping.
 
 ### Streams
@@ -56,8 +56,11 @@ tap-fulfil --help
 | Setting | Type | Required | Default | Description |
 | ------- | ---- | -------- | ------- | ----------- |
 | `start_date` | string (datetime) | no | `2000-01-01T00:00:00Z` | Earliest record date to sync. |
-| `api_url` / `base_url` | string | no | `https://dev.fulfil.io/api/v2` | Base URL for the API. `base_url` is used by the Hotglue connector; `api_url` remains supported for local runs. |
+| `api_url` / `base_url` | string | no | `https://dev.fulfil.io` | Fulfil workspace URL. `base_url` is used by the Hotglue connector and takes precedence over `api_url`, which remains supported for local runs. |
 | `access_key` | string | yes | — | Fulfil personal access token. |
+
+The tap appends `/api/v2` internally. Legacy URLs ending in `/api/v2` remain
+supported, and either form may include trailing slashes.
 
 Run `tap-fulfil --about` (or `tap-fulfil --about --format=markdown`) for the authoritative schema for your installed version.
 
@@ -66,7 +69,7 @@ Run `tap-fulfil --about` (or `tap-fulfil --about --format=markdown`) for the aut
 ```json
 {
   "start_date": "2000-01-01T00:00:00Z",
-  "api_url": "https://dev.fulfil.io/api/v2",
+  "base_url": "https://dev.fulfil.io",
   "access_key": "YOUR_ACCESS_KEY"
 }
 ```
@@ -107,7 +110,8 @@ tap-fulfil --about
 
 ## API / documentation
 
-The default development API host is `https://dev.fulfil.io/api/v2`. API model
+The default development workspace URL is `https://dev.fulfil.io`; the tap uses
+`https://dev.fulfil.io/api/v2` as its API root. API model
 endpoints used by this tap are `/model/account`, `/model/contact`,
 `/model/currency`, `/model/invoice`, and `/model/invoice_line`.
 

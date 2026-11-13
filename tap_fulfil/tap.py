@@ -39,13 +39,16 @@ class TapFulfil(Tap):
         th.Property(
             "api_url",
             th.StringType,
-            description="Base URL for local Fulfil API runs",
-            default="https://dev.fulfil.io/api/v2",
+            description="Fulfil workspace URL; legacy /api/v2 URLs are also supported",
+            default="https://dev.fulfil.io",
         ),
         th.Property(
             "base_url",
             th.StringType,
-            description="Base URL supplied by the Hotglue Fulfil connector",
+            description=(
+                "Fulfil workspace URL supplied by Hotglue; takes precedence over "
+                "api_url. Legacy /api/v2 URLs are also supported"
+            ),
             required=False,
         ),
         th.Property(
